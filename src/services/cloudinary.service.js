@@ -2,7 +2,7 @@ import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
 cloudinary.config({
-    cloud_name: process.env.CLOUD_NAME,
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
@@ -22,7 +22,6 @@ const uploadOnCloudinary = async (localFilePath) => {
 
         console.log("📤 Uploading to Cloudinary:", localFilePath);
 
-        // Upload file to cloudinary
         const response = await cloudinary.uploader.upload(localFilePath, {
             resource_type: "auto",
             folder: "user_avatars",
@@ -30,7 +29,6 @@ const uploadOnCloudinary = async (localFilePath) => {
 
         console.log("✅ File uploaded to Cloudinary:", response.url);
 
-        // Remove local file after successful upload
         if (fs.existsSync(localFilePath)) {
             fs.unlinkSync(localFilePath);
             console.log("🗑️ Local file deleted:", localFilePath);
@@ -38,19 +36,22 @@ const uploadOnCloudinary = async (localFilePath) => {
 
         return response;
     } catch (error) {
-        console.error("❌ Cloudinary upload error:", error.message);
-        
-        // Remove local file if upload fails
-        if (fs.existsSync(localFilePath)) {
-            fs.unlinkSync(localFilePath);
-            console.log("🗑️ Local file deleted after error:", localFilePath);
-        }
+    console.error("❌ Cloudinary upload error:");
+    console.error(error);
 
-        return null;
+    if (error.response) {
+        console.log(error.response);
     }
+
+    if (fs.existsSync(localFilePath)) {
+        fs.unlinkSync(localFilePath);
+    }
+
+    return null;
+}
+    
 };
 
-// ❌ REMOVE THIS TEST CODE - it's causing issues
-// cloudinary.v2.uploader.upload("dog.mp4", { ... })
+
 
 export { uploadOnCloudinary };

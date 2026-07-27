@@ -18,8 +18,7 @@ const storage = multer.diskStorage({
     },
     filename: function (req, file, cb) {
         // Create unique filename with timestamp
-        // const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        // cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+
          cb(null, file.originalname)
     }
 });
@@ -38,15 +37,3 @@ export const upload = multer({
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
     fileFilter: fileFilter
 });
-
-// const storage = multer.diskStorage({
-
-//   destination: function (req, file, cb) {
-//     cb(null, '/public/temp')
-//       console.log("sfsfsd")
-//   },
-//   filename: function (req, file, cb) {
-   
-//     cb(null, file.originalname)
-//   }
-// })
