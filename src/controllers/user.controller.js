@@ -173,8 +173,7 @@ const refreshTokenUser = asyncHandler(async (req, res) => {
   if (!incomingRequestToken) {
     throw new ApiError(401, "Unauthorized request");
   }
-try {
-  
+  try {
     const decodedToken = jwt.verify(
       incomingRequestToken,
       process.env.REFRESH_TOKEN_SECRET
@@ -190,23 +189,63 @@ try {
       httpOnly: true,
       secure: true,
     };
-  
+
     const { accessToken, newRefreshToken } =
       await generateAccessTokenandRefreshToken(user._id);
-    
+
     return res
       .status(200)
       .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", newRefreshToken ,  options)
+      .cookie("refreshToken", newRefreshToken, options)
       .json(
         new ApiResponse(200, "User logged out successfully", {
           accessToken,
-          refreshToken : newRefreshToken,
+          refreshToken: newRefreshToken,
         })
       );
-} catch (error) {
-  throw new ApiError(401, error?.message || "Invalid refresh token")
-}
+  } catch (error) {
+    throw new ApiError(401, error?.message || "Invalid refresh token");
+  }
 });
 
-export { registerUser, loginUser, logoutUser,refreshTokenUser };
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  const user = await User.findById(req?.user._id);
+  const isPasswordCorrect = await user.comparePassword(oldPassword);
+  if (!isPasswordCorrect) {
+    throw new ApiError(400);
+  }
+  user.password = newPassword;
+  user.save({ validateBeforeSave: false });
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "User logged out successfully", {}));
+});
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+  return res.status(200).json(200, "User  get sucessfullty" , res.user);
+});
+
+const updateAccountDetails = asyncHandler(async (req, res) => {
+  const { fullName, email } = req.body;
+  if (!fullName || !email) {
+    throw new ApiError(400, "Invalid request");
+  }
+
+  const user = User.findByIdAndUpdate(req.user?._id, { $set: { 
+    fullName : fullName, 
+    email : email
+  }}, { new: true }).select("-password"); 
+
+return res.status(200).json(new ApiResponse(200 , "Account details update Sucessfully", user))
+});
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshTokenUser,
+  changeCurrentPassword,
+  getCurrentUser,
+  updateAccountDetails
+};
